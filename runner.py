@@ -55,4 +55,38 @@ def obtener_acciones_posibles(estado):
 
     return conjunto_acciones
 
+# 4) Modelo de transición
 
+def aplicar_accion(estado, accion):
+    """
+    Aplica la acción al estado y retorna el nuevo estado (litros_jarra5, litros_jarra4)
+    Hace uso de min/max para manejar los sobrantes de las jarras
+    """
+
+    litros_jarra5, litros_jarra4 = estado
+
+    if accion == "L5":       # Llenar jarra de 5 litros
+        return (CAPACIDAD_JARRA5, litros_jarra4)
+
+    elif accion == "L4":     # Llenar jarra de 4 litros
+        return (litros_jarra5, CAPACIDAD_JARRA4)
+
+    elif accion == "V5":     # Vaciar jarra de 5 litros
+        return (0, litros_jarra4)
+
+    elif accion == "V4":     # Vaciar jarra de 4 litros
+        return (litros_jarra5, 0)
+
+    elif accion == "T54":    # Transferir de jarra 5 L a jarra 4 L
+        espacio_disponible_en_jarra4 = CAPACIDAD_JARRA4 - litros_jarra4
+        cantidad_transferida = min(litros_jarra5, espacio_disponible_en_jarra4)
+        return (litros_jarra5 - cantidad_transferida, litros_jarra4 + cantidad_transferida)
+
+    elif accion == "T45":    # Transferir de jarra 4 L a jarra 5 L
+        espacio_disponible_en_jarra5 = CAPACIDAD_JARRA5 - litros_jarra5
+        cantidad_transferida = min(litros_jarra4, espacio_disponible_en_jarra5)
+        return (litros_jarra5 + cantidad_transferida, litros_jarra4 - cantidad_transferida)
+    
+
+#
+def busqueda_mejor_primero(estado_inicial):
