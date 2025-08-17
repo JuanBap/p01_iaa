@@ -1,4 +1,4 @@
-## p01_iaa — Problema de las jarras (5 L y 4 L) con búsqueda Best-First
+## Primer proyecto Intro. IA — Problema de las jarras (5 L y 4 L) con búsqueda Best-First
 
 Proyecto educativo que resuelve el clásico problema de las jarras usando búsqueda Best-First (greedy) con la heurística h(R5, R4) = |J5 − 2|. El objetivo es obtener exactamente 2 litros en la jarra de 5 litros.
 
