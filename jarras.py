@@ -106,7 +106,7 @@ def aplicar_accion(estado, accion):
         return (litros_jarra5 + cantidad_transferida, litros_jarra4 - cantidad_transferida)
     
 
-# 5) Búsqueda best-first
+# 5) Búsqueda best-first - Ayuda de ChatGPT 5-Thinking, ver prompt en prompt.txt
 def busqueda_best_first(estado_inicial = None):
     """
     Realiza la búsqueda Best-first:

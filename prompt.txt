@@ -1,0 +1,54 @@
+Actúa como un asistente experto en IA y algoritmos de búsqueda. 
+Quiero que GENERES ÚNICAMENTE la función de Python llamada `busqueda_best_first` para mi proyecto del problema de las jarras (5 L y 4 L). No escribas nada más fuera de la función.
+Debes usar exactamente los mismos nombres de variables y funciones auxiliares que ya existen en mi módulo, y NO debes cambiar nombres, firmas, ni devolver tipos distintos a los indicados abajo.
+
+CONTEXTO DEL MÓDULO (ya implementado por mí):
+- Representación del estado: una tupla (litros_jarra5, litros_jarra4), por ejemplo (0, 0).
+- Estado inicial: lo devuelve `obtener_estado_inicial()`.
+- Estado final (objetivo): lo determina `es_estado_final(estado)`. Para este problema, es cuando litros_jarra5 == 2.
+- Heurística: `funcion_heuristica(estado)` devuelve h(n) = |litros_jarra5 - 2|.
+- Acciones posibles: `obtener_acciones_posibles(estado)` devuelve un conjunto de códigos de acción {"L5","L4","V5","V4","T54","T45"} válidas para ese estado.
+- Modelo de transición: `aplicar_accion(estado, accion)` devuelve el nuevo estado (sucesor) tras aplicar `accion`.
+- Ya tengo importado: `from heapq import heappush, heappop`.
+
+REQUISITOS DE LA FUNCIÓN A GENERAR:
+- Firma exacta:
+    def busqueda_best_first(estado_inicial = None):
+- Propósito: realizar una BÚSQUEDA BEST-FIRST (Greedy), donde la prioridad de la cola está dada ÚNICAMENTE por la heurística h(n) = funcion_heuristica(estado). No implementar A* ni Uniform-Cost: solo Best-First puro.
+- Estructura de la cola de prioridad: cada elemento debe ser una tupla (valor_heuristico, id_incremental, estado). 
+  * `valor_heuristico` = funcion_heuristica(estado).
+  * `id_incremental` = entero que se incrementa cada vez que se inserta en la frontera para romper empates de manera determinista (evitar comparar estados al empatar en h).
+  * `estado` = la tupla (litros_jarra5, litros_jarra4).
+- Inicialización:
+  * Si `estado_inicial` es None, asignar `estado_inicial = obtener_estado_inicial()`.
+  * Inicializar la frontera (heap) con el estado_inicial usando su heurística y con `id_incremental = 0`.
+  * Estructuras auxiliares:
+      - `visitados` como un set().
+      - `diccionario_padre` como {estado_inicial: None}.
+      - `diccionario_accion` como {estado_inicial: None}.
+- Bucle principal:
+  * Repetir mientras la frontera no esté vacía:
+      - Extraer el elemento de menor `valor_heuristico` (usar heappop) y desempaquetar en (valor_heuristico, identificador, estado_actual).
+      - Si `estado_actual` ya está en `visitados`, continuar con la siguiente iteración (para evitar reprocesar).
+      - Añadir `estado_actual` a `visitados`.
+      - Si `es_estado_final(estado_actual)` es True, devolver inmediatamente la tupla:
+            (estado_actual, diccionario_padre, diccionario_accion)
+      - Si no es final, para cada `accion` en `obtener_acciones_posibles(estado_actual)`:
+            * Obtener `sucesor = aplicar_accion(estado_actual, accion)`.
+            * Si `sucesor` NO está en `diccionario_padre` (no descubierto aún):
+                  - `diccionario_padre[sucesor] = estado_actual`
+                  - `diccionario_accion[sucesor] = accion`
+                  - Incrementar `id_incremental` en 1.
+                  - Insertar en la frontera con:
+                        heappush(frontera, (funcion_heuristica(sucesor), id_incremental, sucesor))
+- Terminación sin solución:
+  * Si la frontera se vacía sin hallar un estado final, devolver:
+        (None, diccionario_padre, diccionario_accion)
+- Estilo y claridad:
+  * Usa nombres descriptivos EXACTAMENTE como los mencionados (valor_heuristico, identificador, estado_actual, frontera, id_incremental, visitados, diccionario_padre, diccionario_accion, sucesor).
+  * Incluye un docstring claro al inicio de la función explicando qué hace, cómo prioriza y qué devuelve.
+  * NO imprimas nada, NO uses logging, NO cambies los contratos de otras funciones, NO cambies nombres.
+  * La función debe ser determinista.
+
+SALIDA ESPERADA:
+- Únicamente el bloque de la función `busqueda_best_first` completa y funcional, lista para pegarse en mi archivo `jarras.py`, sin texto adicional fuera del bloque de la función.
