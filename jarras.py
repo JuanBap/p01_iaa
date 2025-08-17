@@ -183,10 +183,10 @@ def descripcion_de_accion(codigo_accion):
 
 # 8) Ejecución simple
 if __name__ == "__main__":
-    estado_objetivo, diccionario_padre, diccionario_accion = busqueda_mejor_primero()
+    estado_objetivo, diccionario_padre, diccionario_accion = busqueda_best_first()
     camino_solucion = reconstruir_camino(estado_objetivo, diccionario_padre, diccionario_accion)
 
     print("Solución (Best-First con h(litros_jarra5, litros_jarra4)=|litros_jarra5-2|):\n")
     for indice, (estado, accion) in enumerate(camino_solucion):
-        print(f"Paso {indice:02d}: Estado {estado:>7}  <- {descripcion_de_accion(accion)}")
+        print(f"Paso {indice:02d}: Estado {str(estado):>7}  <- {descripcion_de_accion(accion)}")
     print("\nEstado final alcanzado:", camino_solucion[-1][0] if camino_solucion else None)
