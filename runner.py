@@ -88,5 +88,45 @@ def aplicar_accion(estado, accion):
         return (litros_jarra5 + cantidad_transferida, litros_jarra4 - cantidad_transferida)
     
 
-#
-def busqueda_mejor_primero(estado_inicial):
+# 5) Búsqueda best-first
+def busqueda_best_first(estado_inicial = None):
+    """
+    Realiza la búsqueda Best-first:
+    - La prioridad en la cola es sólo la heurística h(n)
+    - Devuelve el (estado_objetivo, diccionario_padre, diccionario_accion) para reconstruir el camino.
+    """
+    if estado_inicial is None:
+        estado_inicial = obtener_estado_inicial()
+    
+    # Cola de prioridad: (h, id_incremental, estado)
+    frontera = []
+    id_incremental = 0
+    heappush(frontera, (funcion_heuristica(estado_inicial), id_incremental, estado_inicial))
+
+    # Conjuntos y diccionarios de apoyo
+    visitados = set()
+    diccionario_padre = {estado_inicial: None}
+    diccionario_accion = {estado_inicial: None}
+
+    while frontera:
+        valor_heuristico, identificador, estado_actual = heappop(frontera)
+
+        if estado_actual in visitados:
+            continue
+        visitados.add(estado_actual)
+
+        if es_estado_final(estado_actual):
+            return estado_actual, diccionario_padre, diccionario_accion
+        
+        for accion in obtener_acciones_posibles(estado_actual):
+            sucesor = aplicar_accion(estado_actual, accion)
+            if sucesor not in diccionario_padre: # Si aún no ha sido descubieto
+                diccionario_padre[sucesor] = estado_actual
+                diccionario_accion[sucesor] = accion
+                id_incremental += 1
+                heappush(frontera, (funcion_heuristica(sucesor), id_incremental, sucesor))
+        
+    # En caso de que no se encuentre la solución
+    return None, diccionario_padre, diccionario_accion
+
+
