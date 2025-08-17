@@ -129,4 +129,37 @@ def busqueda_best_first(estado_inicial = None):
     # En caso de que no se encuentre la solución
     return None, diccionario_padre, diccionario_accion
 
+# 6) Reconstrucción de la solución
+def reconstruir_camino(estado_final, diccionario_padre, diccionario_accion):
+    """
+    Reconstruye la secuencia de (estado, acción) desde el inicial
+    hasta el final. La primera tupla tiene accion_entrada = None.
+    """
+    if estado_final is None:
+        return[]
+    
+    camino = []
+    estado = estado_final
+
+    while estado is not None:
+        accion_entrada = diccionario_accion[estado]
+        camino.append((estado, accion_entrada))
+        estado = diccionario_padre[estado]
+    camino.reverse()
+    return camino
+
+# 7) Imprimir texto
+def descripcion_de_accion(codigo_accion):
+    """
+    Traduce el código corto de acción a una descripción legible.
+    """
+    return {
+        "L5": "Llenar jarra de 5 L",
+        "L4": "Llenar jarra de 4 L",
+        "V5": "Vaciar jarra de 5 L",
+        "V4": "Vaciar jarra de 4 L",
+        "T54": "Transferir de 5 L a 4 L",
+        "T45": "Transferir de 4 L a 5 L",
+        None:  "Estado inicial"
+    }[codigo_accion]
 
