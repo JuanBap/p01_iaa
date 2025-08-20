@@ -15,7 +15,7 @@ CONTEXTO DEL MÓDULO (ya implementado por mí):
 REQUISITOS DE LA FUNCIÓN A GENERAR:
 - Firma exacta:
     def busqueda_a_estrella(estado_inicial = None):
-- Propósito: realizar una **BÚSQUEDA A\*** donde la prioridad de la cola está dada por:
+- Propósito: realizar una Búsqueda A* donde la prioridad de la cola está dada por:
       f(n) = g(n) + h(n)
 - Estructura de la cola de prioridad: cada elemento debe ser una tupla (valor_funcion_f, id_incremental, estado).
 - Inicialización:

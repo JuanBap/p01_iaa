@@ -174,7 +174,7 @@ def aplicar_accion(estado, nombre_accion):
 
     raise ValueError(f"Acción desconocida: {nombre_accion}")
 
-# 5) Búsqueda A* con logs detallados
+# 5) Búsqueda A* con logs detallados - Ayudado de ChatGPT 5 Thinking, prompt documentado en prompt2.txt
 def busqueda_a_estrella(estado_inicial=None):
     """
     Realiza la búsqueda A*:

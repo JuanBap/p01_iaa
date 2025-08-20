@@ -10,7 +10,7 @@ import argparse
 import time
 import jarras_a_estrella as problema_jarras
 
-# Ayudado con gpt porque son demasiados prints
+# Ayudado con gpt porque son demasiados prints 
 
 def _tabla_ascii_frontera_estrella(frontera_total):
     """
