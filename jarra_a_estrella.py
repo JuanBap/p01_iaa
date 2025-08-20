@@ -180,3 +180,147 @@ def aplicar_accion(estado, nombre_accion):
 
     raise ValueError(f"Acción desconocida: {nombre_accion}")
 
+# 5) Búsqueda A* con logs detallados
+def busqueda_a_estrella(estado_inicial=None):
+    """
+    Realiza la búsqueda A*:
+    - La prioridad en la cola es f(n) = g(n) + h(n)
+    - Devuelve (estado_objetivo, diccionario_padre, diccionario_accion, logs_por_estado)
+      donde logs_por_estado detalla cada expansión.
+    """
+    if estado_inicial is None:
+        estado_inicial = obtener_estado_inicial()
+
+    costo_estimado_desde_estado = funcion_heuristica(estado_inicial)  # h(inicial)
+    frontera = []  # elementos: (f, id_incremental, estado)
+    identificador_incremental = 0
+    heappush(frontera, (costo_estimado_desde_estado, identificador_incremental, estado_inicial))
+
+    # Estructuras de apoyo
+    diccionario_padre = {estado_inicial: None}
+    diccionario_accion = {estado_inicial: None}
+    diccionario_costo_acumulado = {estado_inicial: 0}  # g(n)
+
+    # Contadores y logs
+    total_descubiertos = 1  # incluye el inicial
+    total_expandidos = 0
+    indice_expansion = 0
+    logs_por_estado = {}
+
+    conjunto_visitados = set()
+
+    while frontera:
+        valor_funcion_f, _identificador, estado_actual = heappop(frontera)
+
+        # Si ya se visitó con mejor costo, se omite
+        if estado_actual in conjunto_visitados:
+            continue
+
+        costo_acumulado_actual = diccionario_costo_acumulado[estado_actual]
+        heuristica_actual = funcion_heuristica(estado_actual)
+
+        # ¿Objetivo?
+        if es_estado_final(estado_actual):
+            frontera_total_ordenada = sorted(
+                [
+                    (
+                        f,
+                        diccionario_costo_acumulado.get(s, float("inf")),
+                        f - diccionario_costo_acumulado.get(s, 0),
+                        s,
+                    )
+                    for (f, _id, s) in frontera
+                ],
+                key=lambda t: (t[0], str(t[3]))
+            )
+            logs_por_estado[estado_actual] = {
+                "indice_de_expansion": indice_expansion,
+                "estado": estado_actual,
+                "costo_acumulado_g": costo_acumulado_actual,
+                "heuristica_h": heuristica_actual,
+                "valor_funcion_f": costo_acumulado_actual + heuristica_actual,
+                "accion_entrada": diccionario_accion.get(estado_actual),
+                "sucesores": [],
+                "sucesores_anadidos": [],
+                "frontera_total": frontera_total_ordenada,
+                "nuevos_descubiertos": 0,
+                "expandidos_este_paso": 0,
+                "totales": {"descubiertos": total_descubiertos, "expandidos": total_expandidos},
+                "es_objetivo": True,
+            }
+            return estado_actual, diccionario_padre, diccionario_accion, logs_por_estado
+
+        # Expandir
+        conjunto_visitados.add(estado_actual)
+        total_expandidos += 1
+
+        acciones_posibles_en_orden = [a for a in ORDEN_ACCIONES if a in obtener_acciones_posibles(estado_actual)]
+
+        # Para el log
+        lista_sucesores = []
+        lista_sucesores_anadidos = []
+        descubiertos_este_paso = 0
+
+        for nombre_accion in acciones_posibles_en_orden:
+            estado_sucesor = aplicar_accion(estado_actual, nombre_accion)
+            costo_de_accion = obtener_costo_de_accion(nombre_accion)
+            costo_acumulado_sucesor = costo_acumulado_actual + costo_de_accion
+            heuristica_sucesor = funcion_heuristica(estado_sucesor)
+            valor_funcion_f_sucesor = costo_acumulado_sucesor + heuristica_sucesor
+
+            # Registrar sucesor en el log (independiente de si entra o mejora)
+            lista_sucesores.append((
+                estado_sucesor,
+                nombre_accion,
+                costo_de_accion,
+                costo_acumulado_sucesor,
+                heuristica_sucesor,
+                valor_funcion_f_sucesor
+            ))
+
+            # Si nunca visto o mejora costo g, actualizar y empujar a frontera
+            if (estado_sucesor not in diccionario_costo_acumulado) or (costo_acumulado_sucesor < diccionario_costo_acumulado[estado_sucesor]):
+                diccionario_costo_acumulado[estado_sucesor] = costo_acumulado_sucesor
+                diccionario_padre[estado_sucesor] = estado_actual
+                diccionario_accion[estado_sucesor] = nombre_accion
+                identificador_incremental += 1
+                heappush(frontera, (valor_funcion_f_sucesor, identificador_incremental, estado_sucesor))
+                lista_sucesores_anadidos.append((valor_funcion_f_sucesor, estado_sucesor))
+                descubiertos_este_paso += 1
+
+        total_descubiertos += descubiertos_este_paso
+
+        # Frontera para el log (ordenada por f, y estado como texto)
+        frontera_total_ordenada = sorted(
+            [
+                (
+                    f,
+                    diccionario_costo_acumulado.get(s, float("inf")),
+                    f - diccionario_costo_acumulado.get(s, 0),
+                    s,
+                )
+                for (f, _id, s) in frontera
+            ],
+            key=lambda t: (t[0], str(t[3]))
+        )
+
+        logs_por_estado[estado_actual] = {
+            "indice_de_expansion": indice_expansion,
+            "estado": estado_actual,
+            "costo_acumulado_g": costo_acumulado_actual,
+            "heuristica_h": heuristica_actual,
+            "valor_funcion_f": costo_acumulado_actual + heuristica_actual,
+            "accion_entrada": diccionario_accion.get(estado_actual),
+            "sucesores": lista_sucesores,  # (estado, accion, costo_accion, g, h, f)
+            "sucesores_anadidos": lista_sucesores_anadidos,  # (f, estado)
+            "frontera_total": frontera_total_ordenada,       # (f, g, h, estado)
+            "nuevos_descubiertos": descubiertos_este_paso,
+            "expandidos_este_paso": 1,
+            "totales": {"descubiertos": total_descubiertos, "expandidos": total_expandidos},
+            "es_objetivo": False,
+        }
+
+        indice_expansion += 1
+
+    # Sin solución
+    return None, diccionario_padre, diccionario_accion, logs_por_estado

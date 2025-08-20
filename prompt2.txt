@@ -1,0 +1,50 @@
+Actúa como un asistente experto en IA y algoritmos de búsqueda. 
+Quiero que GENERES ÚNICAMENTE la función de Python llamada `busqueda_a_estrella` para mi proyecto del problema de las jarras (5 L y 4 L). No escribas nada más fuera de la función.
+Debes usar exactamente los mismos nombres de variables y funciones auxiliares que ya existen en mi módulo, y NO debes cambiar nombres, firmas, ni devolver tipos distintos a los indicados abajo.
+
+CONTEXTO DEL MÓDULO (ya implementado por mí):
+- Representación del estado: una tupla (litros_jarra5, litros_jarra4), por ejemplo (0, 0).
+- Estado inicial: lo devuelve `obtener_estado_inicial()`.
+- Estado final (objetivo): lo determina `es_estado_final(estado)`. Para este problema, es cuando litros_jarra5 == 2.
+- Heurística: `funcion_heuristica(estado)` devuelve h(n) = |litros_jarra5 - 2|.
+- Acciones posibles: `obtener_acciones_posibles(estado)` devuelve un conjunto de códigos de acción {"L5","L4","V5","V4","T54","T45"} válidas para ese estado.
+- Modelo de transición: `aplicar_accion(estado, accion)` devuelve el nuevo estado (sucesor) tras aplicar `accion`.
+- Costos: `obtener_costo_de_accion(accion)` devuelve el costo entero de esa acción.
+- Ya tengo importado: `from heapq import heappush, heappop`.
+
+REQUISITOS DE LA FUNCIÓN A GENERAR:
+- Firma exacta:
+    def busqueda_a_estrella(estado_inicial = None):
+- Propósito: realizar una **BÚSQUEDA A\*** donde la prioridad de la cola está dada por:
+      f(n) = g(n) + h(n)
+- Estructura de la cola de prioridad: cada elemento debe ser una tupla (valor_funcion_f, id_incremental, estado).
+- Inicialización:
+  * Si `estado_inicial` es None, asignar `estado_inicial = obtener_estado_inicial()`.
+  * Inicializar la frontera con el estado inicial y su f(n).
+  * Estructuras auxiliares:
+      - `diccionario_padre` como {estado_inicial: None}.
+      - `diccionario_accion` como {estado_inicial: None}.
+      - `diccionario_costo_acumulado` como {estado_inicial: 0}.
+- Debe mantener logs detallados por cada expansión en un diccionario `logs_por_estado`, donde se registre:
+      * índice de expansión
+      * estado expandido
+      * g(n), h(n), f(n)
+      * acción por la cual llegó
+      * lista de sucesores (con su g, h, f)
+      * lista de sucesores añadidos a la frontera
+      * frontera completa tras la expansión
+      * contadores acumulados (descubiertos, expandidos)
+      * indicador si es objetivo
+- Terminación:
+  * Si encuentra un estado objetivo, devolver la tupla:
+        (estado_objetivo, diccionario_padre, diccionario_accion, logs_por_estado)
+  * Si la frontera se vacía sin hallar solución, devolver:
+        (None, diccionario_padre, diccionario_accion, logs_por_estado)
+- Estilo y claridad:
+  * Usa nombres descriptivos EXACTAMENTE como los mencionados.
+  * Incluye un docstring claro explicando el algoritmo, la prioridad usada y lo que devuelve.
+  * NO imprimas nada, NO uses logging externo, NO cambies contratos de funciones, NO cambies nombres.
+  * La función debe ser determinista.
+
+SALIDA ESPERADA:
+- Únicamente el bloque de la función `busqueda_a_estrella` completa y funcional, lista para pegarse en mi archivo `jarras_a_estrella.py`, sin texto adicional fuera del bloque de la función.
