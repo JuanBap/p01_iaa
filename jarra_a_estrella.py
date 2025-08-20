@@ -3,8 +3,8 @@
 # Problema de las jarras (3 L, 7 L, 9 L) resuelto con búsqueda A*
 # Costos de acciones:
 #   - Llenar = 1
-#   - Vaciar = 2
-#   - Transferir = 3
+#   - Vaciar = 3
+#   - Transferir = 2
 #
 # Representación del estado: (litros_jarra1, litros_jarra2, litros_jarra3)
 #   jarra1: capacidad 3 L
@@ -27,8 +27,8 @@ CAPACIDAD_JARRA2 = 7
 CAPACIDAD_JARRA3 = 9
 
 COSTO_ACCION_LLENAR = 1
-COSTO_ACCION_VACIAR = 2
-COSTO_ACCION_TRANSFERIR = 3
+COSTO_ACCION_VACIAR = 3
+COSTO_ACCION_TRANSFERIR = 2
 
 # Orden determinista de acciones
 ORDEN_ACCIONES = [
