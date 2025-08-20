@@ -33,6 +33,31 @@ def mostrar_camino_solucion(camino_solucion, pausa_segundos=0.0, modo_interactiv
     print("\nEstado final alcanzado:", estado_final)
 
 
+def _tabla_ascii_frontera(frontera_total):
+    """
+    Recibe una lista de tuplas (h, estado) y devuelve una cadena con
+    una tabla ASCII de dos filas: estados y posiciones (índice en la frontera).
+    """
+    if not frontera_total:
+        return ""
+
+    estados = [str(estado) for (h, estado) in frontera_total]
+    posiciones = [str(i) for i in range(len(estados))]
+
+    # Calcular anchos por columna para alineación
+    anchos = [max(len(estados[i]), len(posiciones[i])) for i in range(len(estados))]
+
+    def fila(celdas):
+        partes = [celdas[i].ljust(anchos[i]) for i in range(len(celdas))]
+        return "| " + " | ".join(partes) + " |"
+
+    primera = fila(estados)
+    separador = "-" * len(primera)
+    segunda = fila(posiciones)
+
+    return "\n".join([primera, separador, segunda])
+
+
 def imprimir_logs_formateados(camino_solucion, logs_por_estado, pausa_segundos=0.0, modo_interactivo=False):
     """
     Imprime los logs de expansión de acuerdo al formato solicitado por el usuario.
@@ -71,6 +96,11 @@ def imprimir_logs_formateados(camino_solucion, logs_por_estado, pausa_segundos=0
         else:
             frontera_str = ""
         print(f"  Frontera total: [{frontera_str}]")
+
+        # También mostrar la cola como tabla ASCII (estados/posición)
+        if log["frontera_total"]:
+            print("  Cola (formato tabla):")
+            print(_tabla_ascii_frontera(log["frontera_total"]))
 
         print(
             f"  Nuevos   | Descubiertos únicos: {log['nuevos_descubiertos']}  |  Expandidos: {log['expandidos_este_paso']}"
