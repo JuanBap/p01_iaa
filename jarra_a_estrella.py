@@ -18,3 +18,38 @@
 #   TRANSFERIR_DE_JARRA2_A_JARRA1, TRANSFERIR_DE_JARRA2_A_JARRA3,
 #   TRANSFERIR_DE_JARRA3_A_JARRA1, TRANSFERIR_DE_JARRA3_A_JARRA2
 # --------------------------------------------------------
+
+from heapq import heappush, heappop
+
+# Capacidades de las jarras
+CAPACIDAD_JARRA1 = 3
+CAPACIDAD_JARRA2 = 7
+CAPACIDAD_JARRA3 = 9
+
+COSTO_ACCION_LLENAR = 1
+COSTO_ACCION_VACIAR = 2
+COSTO_ACCION_TRANSFERIR = 3
+
+# Orden determinista de acciones
+ORDEN_ACCIONES = [
+     "LLENAR_JARRA1", "LLENAR_JARRA2", "LLENAR_JARRA3",
+    "VACIAR_JARRA1",  "VACIAR_JARRA2",  "VACIAR_JARRA3",
+    "TRANSFERIR_DE_JARRA1_A_JARRA2",
+    "TRANSFERIR_DE_JARRA1_A_JARRA3",
+    "TRANSFERIR_DE_JARRA2_A_JARRA1",
+    "TRANSFERIR_DE_JARRA2_A_JARRA3",
+    "TRANSFERIR_DE_JARRA3_A_JARRA1",
+    "TRANSFERIR_DE_JARRA3_A_JARRA2",
+]
+
+
+# 1) Definir estado inicial y final
+
+def obtener_estado_inicial():
+    """
+    Devuelve el estado inicial: las tres jarras están vacías.
+    """
+    return (0, 0, 0)
+
+
+
