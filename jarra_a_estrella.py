@@ -53,3 +53,9 @@ def obtener_estado_inicial():
 
 
 
+def es_estado_final(estado):
+    """
+    Retorna True si la jarra de 7 L (jarra2) contiene exactamente 6 L.
+    """
+    litros_jarra1, litros_jarra2, litros_jarra3 = estado
+    return litros_jarra2 == 6
