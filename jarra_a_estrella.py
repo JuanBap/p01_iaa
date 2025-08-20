@@ -108,3 +108,75 @@ def obtener_acciones_posibles(estado):
         conjunto_acciones.add("TRANSFERIR_DE_JARRA3_A_JARRA2")
 
     return conjunto_acciones
+
+# 4) Modelo de transición y costo de acción
+
+def obtener_costo_de_accion(nombre_accion):
+    """
+    Devuelve el costo asociado a la acción por su tipo (llenar, vaciar, transferir).
+    """
+    if nombre_accion.startswith("LLENAR_"):
+        return COSTO_ACCION_LLENAR
+    if nombre_accion.startswith("VACIAR_"):
+        return COSTO_ACCION_VACIAR
+    if nombre_accion.startswith("TRANSFERIR_"):
+        return COSTO_ACCION_TRANSFERIR
+    raise ValueError(f"Acción desconocida: {nombre_accion}")
+
+# Super tedioso jajaa
+
+def aplicar_accion(estado, nombre_accion):
+    """
+    Aplica la acción (nombre completo) y retorna el nuevo estado (litros_jarra1, litros_jarra2, litros_jarra3).
+    """
+    litros_jarra1, litros_jarra2, litros_jarra3 = estado
+
+    # Llenar
+    if nombre_accion == "LLENAR_JARRA1":
+        return (CAPACIDAD_JARRA1, litros_jarra2, litros_jarra3)
+    if nombre_accion == "LLENAR_JARRA2":
+        return (litros_jarra1, CAPACIDAD_JARRA2, litros_jarra3)
+    if nombre_accion == "LLENAR_JARRA3":
+        return (litros_jarra1, litros_jarra2, CAPACIDAD_JARRA3)
+
+    # Vaciar
+    if nombre_accion == "VACIAR_JARRA1":
+        return (0, litros_jarra2, litros_jarra3)
+    if nombre_accion == "VACIAR_JARRA2":
+        return (litros_jarra1, 0, litros_jarra3)
+    if nombre_accion == "VACIAR_JARRA3":
+        return (litros_jarra1, litros_jarra2, 0)
+
+    # Transferencias (cálculo genérico auxiliar)
+    def transferir(cantidad_origen, capacidad_destino, cantidad_destino):
+        espacio_en_destino = capacidad_destino - cantidad_destino
+        cantidad_transferida = min(cantidad_origen, espacio_en_destino)
+        return cantidad_transferida
+
+    # 1 -> 2
+    if nombre_accion == "TRANSFERIR_DE_JARRA1_A_JARRA2":
+        t = transferir(litros_jarra1, CAPACIDAD_JARRA2, litros_jarra2)
+        return (litros_jarra1 - t, litros_jarra2 + t, litros_jarra3)
+    # 1 -> 3
+    if nombre_accion == "TRANSFERIR_DE_JARRA1_A_JARRA3":
+        t = transferir(litros_jarra1, CAPACIDAD_JARRA3, litros_jarra3)
+        return (litros_jarra1 - t, litros_jarra2, litros_jarra3 + t)
+    # 2 -> 1
+    if nombre_accion == "TRANSFERIR_DE_JARRA2_A_JARRA1":
+        t = transferir(litros_jarra2, CAPACIDAD_JARRA1, litros_jarra1)
+        return (litros_jarra1 + t, litros_jarra2 - t, litros_jarra3)
+    # 2 -> 3
+    if nombre_accion == "TRANSFERIR_DE_JARRA2_A_JARRA3":
+        t = transferir(litros_jarra2, CAPACIDAD_JARRA3, litros_jarra3)
+        return (litros_jarra1, litros_jarra2 - t, litros_jarra3 + t)
+    # 3 -> 1
+    if nombre_accion == "TRANSFERIR_DE_JARRA3_A_JARRA1":
+        t = transferir(litros_jarra3, CAPACIDAD_JARRA1, litros_jarra1)
+        return (litros_jarra1 + t, litros_jarra2, litros_jarra3 - t)
+    # 3 -> 2
+    if nombre_accion == "TRANSFERIR_DE_JARRA3_A_JARRA2":
+        t = transferir(litros_jarra3, CAPACIDAD_JARRA2, litros_jarra2)
+        return (litros_jarra1, litros_jarra2 + t, litros_jarra3 - t)
+
+    raise ValueError(f"Acción desconocida: {nombre_accion}")
+
