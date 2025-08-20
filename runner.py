@@ -20,7 +20,7 @@ def mostrar_camino_solucion(camino_solucion, pausa_segundos=0.0, modo_interactiv
         print("No se encontró una solución.")
         return
 
-    print("\nSolución (Best-First con heurística |J5 - 2|):\n")
+    # Encabezado ya lo imprime imprimir_logs_formateados
     for indice, (estado, codigo_accion) in enumerate(camino_solucion):
         descripcion = problema_jarras.descripcion_de_accion(codigo_accion)
         print(f"Paso {indice:02d}: Estado {str(estado):>7}  <- {descripcion}")
@@ -33,13 +33,83 @@ def mostrar_camino_solucion(camino_solucion, pausa_segundos=0.0, modo_interactiv
     print("\nEstado final alcanzado:", estado_final)
 
 
+def imprimir_logs_formateados(camino_solucion, logs_por_estado, pausa_segundos=0.0, modo_interactivo=False):
+    """
+    Imprime los logs de expansión de acuerdo al formato solicitado por el usuario.
+    Se asume que 'camino_solucion' y 'logs_por_estado' provienen de la misma ejecución.
+    """
+    if not camino_solucion:
+        return
+
+    # Encabezado global
+    print("Solución Solución Best-First con heurística |J5-2|:\n\n")
+
+    # Mostrar TODAS las expansiones en orden real (orden de extracción de la frontera)
+    # Ordenamos por 'expansion_index' los logs que no sean objetivo y que se hayan expandido.
+    logs_expandidos = [v for v in logs_por_estado.values() if not v.get("es_objetivo")]
+    logs_expandidos.sort(key=lambda x: x["expansion_index"])
+
+    for idx, log in enumerate(logs_expandidos):
+        estado = log["estado"]
+        accion_entrada = log.get("accion_entrada")
+        descripcion = problema_jarras.descripcion_de_accion(accion_entrada)
+
+        print(f"- Paso {idx:02d} | Estado {estado} <- {descripcion}")
+        print(f"  Expansión #{log['expansion_index']:02d} (orden real) | h={log['heuristica']}")
+        print("  Sucesores descubiertos (estado, acción, h):")
+        for (suc, acc, h_suc) in log["sucesores"]:
+            print(f"    - {suc}  <- {problema_jarras.descripcion_de_accion(acc)}  [h={h_suc}]")
+
+        if log["sucesores_anadidos"]:
+            añadidos_str = ", ".join([f"h={h}:{s}" for (h, s) in log["sucesores_anadidos"]])
+        else:
+            añadidos_str = ""
+        print(f"  Sucesores añadidos: [{añadidos_str}]")
+
+        if log["frontera_total"]:
+            frontera_str = ", ".join([f"h={h}:{s}" for (h, s) in log["frontera_total"]])
+        else:
+            frontera_str = ""
+        print(f"  Frontera total: [{frontera_str}]")
+
+        print(
+            f"  Nuevos   | Descubiertos únicos: {log['nuevos_descubiertos']}  |  Expandidos: {log['expandidos_este_paso']}"
+        )
+        print(
+            f"  Totales  | Descubiertos: {log['totales']['descubiertos']}  |  Expandidos: {log['totales']['expandidos']}"
+        )
+        if idx == 0:
+            print("  Nota: 'Descubiertos' totales incluyen el estado inicial.")
+            print(
+                "  Nota: El contador de descubiertos incluye solo sucesores realmente nuevos (únicos) agregados a la frontera; los ya vistos no incrementan el total."
+            )
+        print("")
+
+        # Interacción / pausa entre pasos
+        if modo_interactivo and idx < len(logs_expandidos) - 1:
+            input("Presiona ENTER para continuar...")
+        elif pausa_segundos > 0:
+            time.sleep(pausa_segundos)
+
+    # Imprimir el objetivo si está en logs y no fue expandido
+    objetivos = [v for v in logs_por_estado.values() if v.get("es_objetivo")]
+    if objetivos:
+        obj = objetivos[0]
+        estado = obj["estado"]
+        print(f"- Paso {len(logs_expandidos):02d} | Estado {estado} <- {problema_jarras.descripcion_de_accion(obj.get('accion_entrada'))}")
+        print("  [Objetivo detectado: no se expandió]")
+        print("  Nuevos   | Descubiertos únicos: 0  |  Expandidos: 0")
+        print("")
+        print(f"Estado final alcanzado: {estado}")
+
+
 def ejecutar_busqueda_y_mostrar(pausa_segundos=0.0, modo_interactivo=False):
     """
     Ejecuta la búsqueda Best-First del módulo 'jarras' y muestra el resultado.
     Además imprime estadísticas simples del recorrido.
     """
     # 1) Ejecutar búsqueda
-    estado_objetivo, diccionario_padre, diccionario_accion = problema_jarras.busqueda_best_first(
+    estado_objetivo, diccionario_padre, diccionario_accion, logs_por_estado = problema_jarras.busqueda_best_first(
         problema_jarras.obtener_estado_inicial()
     )
 
@@ -48,12 +118,18 @@ def ejecutar_busqueda_y_mostrar(pausa_segundos=0.0, modo_interactivo=False):
         estado_objetivo, diccionario_padre, diccionario_accion
     )
 
-    # 3) Mostrar solución
-    mostrar_camino_solucion(
-        camino_solucion=camino_solucion,
+    # 3) Mostrar logs detallados
+    imprimir_logs_formateados(
+        camino_solucion,
+        logs_por_estado,
         pausa_segundos=pausa_segundos,
-        modo_interactivo=modo_interactivo
+        modo_interactivo=modo_interactivo,
     )
+
+    # Línea adicional requerida por el ejemplo
+    print(f"Camino solución reconstruido con {len(camino_solucion)} pasos")
+    if camino_solucion:
+        print(f"Estado final alcanzado: {camino_solucion[-1][0]}\n")
 
     # 4) Métricas simples
     total_pasos = max(len(camino_solucion) - 1, 0)  # acciones ejecutadas

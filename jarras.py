@@ -22,6 +22,9 @@ from heapq import heappush, heappop
 CAPACIDAD_JARRA5 = 5
 CAPACIDAD_JARRA4 = 4
 
+# Orden determinista deseado de acciones para lograr consistencia en la búsqueda
+ORDEN_ACCIONES = ["L5", "L4", "V5", "V4", "T54", "T45"]
+
 # 1) Estado inicial y final
 
 def obtener_estado_inicial():
@@ -111,7 +114,9 @@ def busqueda_best_first(estado_inicial = None):
     """
     Realiza la búsqueda Best-first:
     - La prioridad en la cola es sólo la heurística h(n)
-    - Devuelve el (estado_objetivo, diccionario_padre, diccionario_accion) para reconstruir el camino.
+    - Devuelve (estado_objetivo, diccionario_padre, diccionario_accion, logs_por_estado)
+      donde logs_por_estado es un diccionario con información detallada de la expansión
+      de cada estado extraído de la frontera.
     """
     if estado_inicial is None:
         estado_inicial = obtener_estado_inicial()
@@ -126,17 +131,42 @@ def busqueda_best_first(estado_inicial = None):
     diccionario_padre = {estado_inicial: None}
     diccionario_accion = {estado_inicial: None}
 
+    # Contadores y logs
+    total_descubiertos = 1  # incluye el estado inicial
+    total_expandidos = 0
+    indice_expansion = 0
+    logs_por_estado = {}
+
     while frontera:
         valor_heuristico, identificador, estado_actual = heappop(frontera)
 
         if estado_actual in visitados:
             continue
-        visitados.add(estado_actual)
 
+        # Si es objetivo, registramos log (sin expandir) y devolvemos
         if es_estado_final(estado_actual):
-            return estado_actual, diccionario_padre, diccionario_accion
+            logs_por_estado[estado_actual] = {
+                "expansion_index": indice_expansion,
+                "estado": estado_actual,
+                "heuristica": funcion_heuristica(estado_actual),
+                "accion_entrada": diccionario_accion.get(estado_actual),
+                "sucesores": [],
+                "sucesores_anadidos": [],
+                "frontera_total": sorted([(h, s) for (h, _id, s) in frontera], key=lambda t: (t[0], str(t[1]))),
+                "nuevos_descubiertos": 0,
+                "expandidos_este_paso": 0,
+                "totales": {"descubiertos": total_descubiertos, "expandidos": total_expandidos},
+                "es_objetivo": True,
+            }
+            return estado_actual, diccionario_padre, diccionario_accion, logs_por_estado
+
+        # Marcar como visitado y contabilizar expansión
+        visitados.add(estado_actual)
+        total_expandidos += 1
         
-        for accion in obtener_acciones_posibles(estado_actual):
+        # Generar acciones en orden determinista
+        acciones_en_orden = [a for a in ORDEN_ACCIONES if a in obtener_acciones_posibles(estado_actual)]
+        for accion in acciones_en_orden:
             sucesor = aplicar_accion(estado_actual, accion)
             if sucesor not in diccionario_padre: # Si aún no ha sido descubieto
                 diccionario_padre[sucesor] = estado_actual
@@ -144,8 +174,44 @@ def busqueda_best_first(estado_inicial = None):
                 id_incremental += 1
                 heappush(frontera, (funcion_heuristica(sucesor), id_incremental, sucesor))
         
+        # Preparar log de la expansión
+        # Generar lista ordenada de acciones y sucesores con sus heurísticas
+        acciones_posibles = [a for a in ORDEN_ACCIONES if a in obtener_acciones_posibles(estado_actual)]
+        lista_sucesores = []
+        lista_sucesores_anadidos = []
+        # Para distinguir "añadidos", comparamos contra diccionario_padre previo a esta expansión.
+        # Como ya insertamos arriba, reconstruimos mirando si el padre del sucesor es el estado_actual.
+        for accion in acciones_posibles:
+            suc = aplicar_accion(estado_actual, accion)
+            h_suc = funcion_heuristica(suc)
+            lista_sucesores.append((suc, accion, h_suc))
+            if diccionario_padre.get(suc) == estado_actual:
+                lista_sucesores_anadidos.append((h_suc, suc))
+
+        # Recalcular totales de descubiertos (únicos) a partir de añadidos en esta expansión
+        total_descubiertos += len(lista_sucesores_anadidos)
+
+        # Frontera ordenada solo por (h, estado como texto para estabilidad visual)
+        frontera_total_ordenada = sorted([(h, s) for (h, _id, s) in frontera], key=lambda t: (t[0], str(t[1])))
+
+        logs_por_estado[estado_actual] = {
+            "expansion_index": indice_expansion,
+            "estado": estado_actual,
+            "heuristica": funcion_heuristica(estado_actual),
+            "accion_entrada": diccionario_accion.get(estado_actual),
+            "sucesores": lista_sucesores,
+            "sucesores_anadidos": lista_sucesores_anadidos,
+            "frontera_total": frontera_total_ordenada,
+            "nuevos_descubiertos": len(lista_sucesores_anadidos),
+            "expandidos_este_paso": 1,
+            "totales": {"descubiertos": total_descubiertos, "expandidos": total_expandidos},
+            "es_objetivo": False,
+        }
+
+        indice_expansion += 1
+        
     # En caso de que no se encuentre la solución
-    return None, diccionario_padre, diccionario_accion
+    return None, diccionario_padre, diccionario_accion, logs_por_estado
 
 # 6) Reconstrucción de la solución
 def reconstruir_camino(estado_final, diccionario_padre, diccionario_accion):
@@ -183,7 +249,7 @@ def descripcion_de_accion(codigo_accion):
 
 # 8) Ejecución simple
 if __name__ == "__main__":
-    estado_objetivo, diccionario_padre, diccionario_accion = busqueda_best_first()
+    estado_objetivo, diccionario_padre, diccionario_accion, _logs = busqueda_best_first()
     camino_solucion = reconstruir_camino(estado_objetivo, diccionario_padre, diccionario_accion)
 
     print("Solución Solución Best-First con heurística |J5-2|:\n")
