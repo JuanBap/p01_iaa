@@ -65,3 +65,46 @@ def es_estado_final(estado):
 def funcion_heuristica(estado):
     _, litros_jarra2, _ = estado
     return abs(litros_jarra2 - 6)
+
+# 3) Acciones y precondiciones
+
+def obtener_acciones_posibles(estado):
+    """
+    Retorna el conjunto de acciones posibles (nombres completos) aplicables en 'estado'.
+    """
+    litros_jarra1, litros_jarra2, litros_jarra3 = estado
+    conjunto_acciones = set()
+
+    # Llenar (si no está llena)
+    if litros_jarra1 < CAPACIDAD_JARRA1:
+        conjunto_acciones.add("LLENAR_JARRA1")
+    if litros_jarra2 < CAPACIDAD_JARRA2:
+        conjunto_acciones.add("LLENAR_JARRA2")
+    if litros_jarra3 < CAPACIDAD_JARRA3:
+        conjunto_acciones.add("LLENAR_JARRA3")
+
+    # Vaciar (si tiene algo)
+    if litros_jarra1 > 0:
+        conjunto_acciones.add("VACIAR_JARRA1")
+    if litros_jarra2 > 0:
+        conjunto_acciones.add("VACIAR_JARRA2")
+    if litros_jarra3 > 0:
+        conjunto_acciones.add("VACIAR_JARRA3")
+
+    # Transferir (si origen tiene > 0 y destino no está lleno)
+    if litros_jarra1 > 0 and litros_jarra2 < CAPACIDAD_JARRA2:
+        conjunto_acciones.add("TRANSFERIR_DE_JARRA1_A_JARRA2")
+    if litros_jarra1 > 0 and litros_jarra3 < CAPACIDAD_JARRA3:
+        conjunto_acciones.add("TRANSFERIR_DE_JARRA1_A_JARRA3")
+
+    if litros_jarra2 > 0 and litros_jarra1 < CAPACIDAD_JARRA1:
+        conjunto_acciones.add("TRANSFERIR_DE_JARRA2_A_JARRA1")
+    if litros_jarra2 > 0 and litros_jarra3 < CAPACIDAD_JARRA3:
+        conjunto_acciones.add("TRANSFERIR_DE_JARRA2_A_JARRA3")
+
+    if litros_jarra3 > 0 and litros_jarra1 < CAPACIDAD_JARRA1:
+        conjunto_acciones.add("TRANSFERIR_DE_JARRA3_A_JARRA1")
+    if litros_jarra3 > 0 and litros_jarra2 < CAPACIDAD_JARRA2:
+        conjunto_acciones.add("TRANSFERIR_DE_JARRA3_A_JARRA2")
+
+    return conjunto_acciones
