@@ -324,3 +324,21 @@ def busqueda_a_estrella(estado_inicial=None):
 
     # Sin solución
     return None, diccionario_padre, diccionario_accion, logs_por_estado
+
+# 6) Reconstrucción de la solución
+def reconstruir_camino(estado_final, diccionario_padre, diccionario_accion):
+    """
+    Reconstruye la secuencia de (estado, acción_de_entrada) desde el inicial hasta el final.
+    La primera tupla tiene accion_entrada = None.
+    """
+    if estado_final is None:
+        return []
+
+    camino = []
+    estado = estado_final
+    while estado is not None:
+        accion_entrada = diccionario_accion.get(estado)
+        camino.append((estado, accion_entrada))
+        estado = diccionario_padre.get(estado)
+    camino.reverse()
+    return camino
