@@ -15,26 +15,64 @@ import jarras_a_estrella as problema_jarras
 def _tabla_ascii_frontera_estrella(frontera_total):
     """
     Recibe una lista de tuplas (f, g, h, estado) y devuelve una cadena con
-    una tabla ASCII de dos filas: estados y posiciones (índice en la frontera).
+    una tabla ASCII vertical con columnas: Idx, Estado, g, h, f.
     """
     if not frontera_total:
         return ""
 
-    estados = [str(t[3]) for t in frontera_total]
-    posiciones = [str(i) for i in range(len(estados))]
+    # Preparar filas como strings
+    filas = []
+    for idx, (f, g, h, s) in enumerate(frontera_total):
+        filas.append([str(idx), str(s), str(g), str(h), f"{f:.0f}"])
 
-    # Calcular anchos por columna para alineación
-    anchos = [max(len(estados[i]), len(posiciones[i])) for i in range(len(estados))]
+    headers = ["Idx", "Estado", "g", "h", "f"]
+    num_cols = len(headers)
+    anchos = [len(headers[i]) for i in range(num_cols)]
+    for fila in filas:
+        for i, celda in enumerate(fila):
+            if len(celda) > anchos[i]:
+                anchos[i] = len(celda)
 
-    def fila(celdas):
-        partes = [celdas[i].ljust(anchos[i]) for i in range(len(celdas))]
-        return "| " + " | ".join(partes) + " |"
+    def linea_sep():
+        return "+" + "+".join("-" * (anchos[i] + 2) for i in range(num_cols)) + "+"
 
-    primera = fila(estados)
-    separador = "-" * len(primera)
-    segunda = fila(posiciones)
+    def formatear_fila(valores):
+        return "| " + " | ".join(f"{valores[i]:<{anchos[i]}}" for i in range(num_cols)) + " |"
 
-    return "\n".join([primera, separador, segunda])
+    lineas = [linea_sep(), formatear_fila(headers), linea_sep()]
+    for fila in filas:
+        lineas.append(formatear_fila(fila))
+    lineas.append(linea_sep())
+
+    return "\n".join(lineas)
+
+
+def _tabla_ascii_vertical(headers, filas):
+    """
+    Construye una tabla ASCII vertical genérica a partir de headers y filas (listas de strings).
+    """
+    if not filas:
+        return ""
+    headers_str = [str(h) for h in headers]
+    filas_str = [[str(c) for c in fila] for fila in filas]
+    num_cols = len(headers_str)
+    anchos = [len(headers_str[i]) for i in range(num_cols)]
+    for fila in filas_str:
+        for i, celda in enumerate(fila):
+            if len(celda) > anchos[i]:
+                anchos[i] = len(celda)
+
+    def linea_sep():
+        return "+" + "+".join("-" * (anchos[i] + 2) for i in range(num_cols)) + "+"
+
+    def formatear_fila(valores):
+        return "| " + " | ".join(f"{valores[i]:<{anchos[i]}}" for i in range(num_cols)) + " |"
+
+    lineas = [linea_sep(), formatear_fila(headers_str), linea_sep()]
+    for fila in filas_str:
+        lineas.append(formatear_fila(fila))
+    lineas.append(linea_sep())
+    return "\n".join(lineas)
 
 
 def imprimir_logs_formateados_estrella(camino_solucion, logs_por_estado, pausa_segundos=0.0, modo_interactivo=False):
@@ -60,23 +98,47 @@ def imprimir_logs_formateados_estrella(camino_solucion, logs_por_estado, pausa_s
         print(
             f"  Expansión #{log['indice_de_expansion']:02d} (orden real) | g={log['costo_acumulado_g']}  h={log['heuristica_h']}  f={log['valor_funcion_f']}"
         )
-        print("  Sucesores descubiertos (estado, acción, c, g, h, f):")
-        for (suc, acc, cacc, g_suc, h_suc, f_suc) in log["sucesores"]:
-            print(
-                f"    - {suc}  <- {problema_jarras.descripcion_de_accion(acc)}  [c={cacc}, g={g_suc}, h={h_suc}, f={f_suc}]"
+        # Sucesores como tabla vertical
+        filas_sucesores = []
+        for i, (suc, acc, cacc, g_suc, h_suc, f_suc) in enumerate(log["sucesores"]):
+            filas_sucesores.append([
+                str(i),
+                str(suc),
+                problema_jarras.descripcion_de_accion(acc),
+                str(cacc),
+                str(g_suc),
+                str(h_suc),
+                f"{f_suc:.0f}",
+            ])
+        if not filas_sucesores:
+            filas_sucesores = [["-", "(sin sucesores)", "-", "-", "-", "-", "-"]]
+        print("  Sucesores (tabla):")
+        print(
+            _tabla_ascii_vertical(
+                ["Idx", "Estado", "Acción", "c", "g", "h", "f"], filas_sucesores
             )
+        )
+        print("")
 
-        if log["sucesores_anadidos"]:
-            anadidos_str = ", ".join([f"f={f:.0f}|g={g}|h={h}:{s}" for (f, g, h, s) in log["sucesores_anadidos"]])
-        else:
-            anadidos_str = ""
-        print(f"  Sucesores añadidos: [{anadidos_str}]")
+        # Sucesores añadidos como tabla vertical
+        filas_anadidos = []
+        for i, (f, g, h, s) in enumerate(log["sucesores_anadidos"]):
+            filas_anadidos.append([str(i), str(s), str(g), str(h), f"{f:.0f}"])
+        if not filas_anadidos:
+            filas_anadidos = [["-", "(ninguno)", "-", "-", "-"]]
+        print("  Sucesores añadidos (tabla):")
+        print(_tabla_ascii_vertical(["Idx", "Estado", "g", "h", "f"], filas_anadidos))
+        print("")
 
-        if log["frontera_total"]:
-            frontera_str = ", ".join([f"f={f:.0f}|g={g}|h={h}:{s}" for (f, g, h, s) in log["frontera_total"]])
-        else:
-            frontera_str = ""
-        print(f"  Frontera total: [{frontera_str}]")
+        # Frontera total como tabla vertical
+        filas_frontera = []
+        for i, (f, g, h, s) in enumerate(log["frontera_total"]):
+            filas_frontera.append([str(i), str(s), str(g), str(h), f"{f:.0f}"])
+        if not filas_frontera:
+            filas_frontera = [["-", "(vacía)", "-", "-", "-"]]
+        print("  Frontera total (tabla):")
+        print(_tabla_ascii_vertical(["Idx", "Estado", "g", "h", "f"], filas_frontera))
+        print("")
 
         # También mostrar la cola como tabla ASCII (estados/posición)
         if log["frontera_total"]:
