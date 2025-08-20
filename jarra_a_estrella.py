@@ -59,3 +59,9 @@ def es_estado_final(estado):
     """
     litros_jarra1, litros_jarra2, litros_jarra3 = estado
     return litros_jarra2 == 6
+
+# 2) Heurística para A*
+# Heurística admisible: h(n) = |litros_jarra2 - 6|
+def funcion_heuristica(estado):
+    _, litros_jarra2, _ = estado
+    return abs(litros_jarra2 - 6)
