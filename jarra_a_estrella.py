@@ -342,3 +342,39 @@ def reconstruir_camino(estado_final, diccionario_padre, diccionario_accion):
         estado = diccionario_padre.get(estado)
     camino.reverse()
     return camino
+
+# 7) Mejora de texto
+def descripcion_de_accion(nombre_accion):
+    descripciones = {
+        "LLENAR_JARRA1": "Llenar jarra 1 (3 L)",
+        "LLENAR_JARRA2": "Llenar jarra 2 (7 L)",
+        "LLENAR_JARRA3": "Llenar jarra 3 (9 L)",
+        "VACIAR_JARRA1": "Vaciar jarra 1 (3 L)",
+        "VACIAR_JARRA2": "Vaciar jarra 2 (7 L)",
+        "VACIAR_JARRA3": "Vaciar jarra 3 (9 L)",
+        "TRANSFERIR_DE_JARRA1_A_JARRA2": "Transferir de jarra 1 (3 L) a jarra 2 (7 L)",
+        "TRANSFERIR_DE_JARRA1_A_JARRA3": "Transferir de jarra 1 (3 L) a jarra 3 (9 L)",
+        "TRANSFERIR_DE_JARRA2_A_JARRA1": "Transferir de jarra 2 (7 L) a jarra 1 (3 L)",
+        "TRANSFERIR_DE_JARRA2_A_JARRA3": "Transferir de jarra 2 (7 L) a jarra 3 (9 L)",
+        "TRANSFERIR_DE_JARRA3_A_JARRA1": "Transferir de jarra 3 (9 L) a jarra 1 (3 L)",
+        "TRANSFERIR_DE_JARRA3_A_JARRA2": "Transferir de jarra 3 (9 L) a jarra 2 (7 L)",
+        None: "Estado inicial"
+    }
+    return descripciones.get(nombre_accion, nombre_accion)
+
+# 8) Main
+if __name__ == "__main__":
+    estado_objetivo, diccionario_padre, diccionario_accion, logs_por_estado = busqueda_a_estrella()
+    camino_solucion = reconstruir_camino(estado_objetivo, diccionario_padre, diccionario_accion)
+
+    print("Solución con A* (h(n)=|jarra2-6|; costos: Llenar=1, Vaciar=2, Transferir=3):\n")
+    for indice, (estado, accion) in enumerate(camino_solucion):
+        texto_accion = descripcion_de_accion(accion)
+        print(f"Paso {indice:02d}: Estado {str(estado):>12}  <- {texto_accion}")
+    print("\nEstado final alcanzado:", camino_solucion[-1][0] if camino_solucion else None)
+
+    # Ejemplo: imprimir un resumen de los primeros logs (opcional)
+    print("\n--- Resumen de logs por expansión (primeras 5) ---")
+    for i, (estado, log) in enumerate(list(logs_por_estado.items())[:5]):
+        print(f"[Expansión #{log['indice_de_expansion']:02d}] Estado {estado} | g={log['costo_acumulado_g']} h={log['heuristica_h']} f={log['valor_funcion_f']}")
+        print(f"  Nuevos descubiertos: {log['nuevos_descubiertos']} | Frontera (tamaño={len(log['frontera_total'])})")
